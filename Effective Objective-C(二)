@@ -1,0 +1,44 @@
+#Effective Objective-C(二)
+--
+###在类的头文件中尽量少引入其他头文件
+Objective-C中编写类时候创建两个文件，头文件(.h结尾)和实现文件(.m结尾)。创建一个类例子如下：
+
+```
+//EOCPerson.h
+#import <Foundation/Foundation.h>
+
+@interface EOCPerson : NSObject
+@property (nonatomic, strong) NSString *firstName;
+@property (nonatomic, strong) NSString *lastName;
+@end
+
+//EOCPerson.m
+#import "EOCPerson.h"
+
+@implementation EOCPerson
+//
+@end
+```
+
+过段时间后，你创建了一个EOCEmlpoyer的新类，然后想给EOCPerson添加一个属性
+于是有：
+
+```
+@interface EOCPerson : NSObject
+@property (nonatomic, strong) NSString *firstName;
+@property (nonatomic, strong) NSString *lastName;
+@property (nonatomic, strong) EOCEmployer *employer;
+@end
+```
+
+并且通常的方法是在EOCPerson.h中加入```#import "EOCEmployer.h"```,这种方法可行但是不够优雅，因为在编译EOCPerson类的文件的时候，不需要知道EOCEmployer类的全部细节，只需要指导一个类名交EOCEmployer就好。于是有个更好的方法来告诉编译器```@class EOCEmployer;```这中方法叫做“向前声明”(forward declaring)该类。
+当在EOCPerson类的实现文件中，再引入EOCEmployer类的头文件，因为要知道该类的所有细节。  
+将引入头文件的时机尽量延后，只在确实需要使用的时候才引入，这样减少类的使用者所引入头文件的数量。如果例中在EOCPerson.h中引入EOCEmployer.h,那么只要引入EOCPerson就会引入EOCEmployer.h的所有内容，若此过程储蓄下去，便会引入许多根本用不到的内容，显然会增加了编译时间。   
+向前声明也解决了两个类相互引用的问题。假设要为EOCEmployer类加入新增及删除雇员的方法，那么在其头文件中会有一下两方法： 
+ 
+```
+- (void)addEmployee:(EOCPerson *)person;
+- (void)removeEmployee:(EOCPerson *)person;
+```
+
+此时若要编译EOCEmlpoyee，则编译器必须要知道EOCPerson这个类，而如果要编译EOCPerson则编译器必须要指导EOCEmployee。如果在各自头文件中引入对方的头文件，则会导致”循环引用”(chicken-and-eggs situation)。最终会使两个类中一个无法正确编译。

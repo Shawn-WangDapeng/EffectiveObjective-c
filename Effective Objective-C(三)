@@ -1,0 +1,55 @@
+##Effective Objective-C(三)
+编写Objective-C的时候，总会用到几个类属于Foundation框架，这几个类是NSString,NSNumber,NSArray,NSDictionary。从Objective-C 1.0起，有了种简单的方式创建NSString对象。NSString *someStr = @"Effective Objective-C";如果不用这个方法就只能用传统的alloc ，init来分配并初始化。同理也可以通过这种方法来声明NSNumber，NSArray，NSDictionary类的实例。  
+**字面数值**：有时候要把整数，浮点数，布尔值封装到Objective-C对象中，这种情况下用NSNumber类。原有的方法：  
+`NSNumber *someNumber = [NSNumber numberWithInt: 1];`  
+新的方法为:  
+`NSNumber *someNumber = @1;`  
+同理  
+
+```
+NSNumber *floatNumber = @2.5f;
+NSNumber *doubleNumber = @3.14158;
+NSNumber *boolNumber = @YES;
+NSNumber *charNumber = @'a';
+```
+**字面量数组**  
+原有的数组创建方法为:  
+`NSArray *animals = [NSArray arrayWithObjects : @"cat", @"dog", @"mouse", @"badger", nil]`  
+新的方法则为：  
+`NSArray *animals = @[@"cat", @"dog", @"mouse", @"badger"];`  
+对于取数组元素的操作，传统的方法为:  
+`NSString *dog = [animals objectAtIndex: 1];`  
+而新的方法，也成为‘取下标’操作:  
+`NSString *dog = animals[1];`  
+不过使用字面量语法创建数组的时候要注意，若数组元素对象中有nil,则会抛出异常。字面量创建数组的实质是西安创建一个数组，然后将中括号内的对象一次加入这个数组，因此发现nil是不会被加入数组的，所以会报错。  
+例如：  
+ 
+```
+id object1 = /* ...*/;
+id object2 = /* ...*/;
+id object3 = /* ...*/;
+NSArray *arrayA = [NSArray arrayWithObjects:object1, object2, object3, nil];
+NSArray *arrayB = @[object1, object2, object3];
+``` 
+在上述中，若object2为nil，那么arrayB创建的时候会报错而arrayA不会报错，但是arrayA虽然能够创建出来，其里面只会有一个object1对象。原因在于“arrayWithObjects:”方法会一次处理各个参数，直到发现nil终止。  
+**字面量字典**  
+字典是一种映射数据结构，向其中添加键值对关系。  
+原有的创建方法为:  
+`NSDictionary *personData = [NSDictionary dictionaryWithObjectsAndKeys: @"Matt", @"firstName", @"Galloway", @"secondName", [NSNumber numberWithInt: 28], @"age"];`  
+新的字面量创建方法为：  
+`NSDictionary *personData = @{@"firstName" : @"Matt", @"secondName" : @"Galloway", @"age" : @28};`  
+**这里还要注意字典中对象和键都是Objective-C对象**  
+对于字典中对象的访问  
+传统为：  
+`NSString *lastName = [personData objectForKey: @"lastName"];`  
+字面语法为:  
+`NSString *lastName = personData[@"lastName"];`
+
+**局限性：** 
+使用字面量语法创建的字符串、数组、字典对象都是不可变的(immutable)。若想创建可变版本的对象，则需要复制一份。  
+`NSMutableArray *mutable = [@[@1, @2, @3, @4, @5] mutableCopy];`
+**要点：**   
+1. 应该多使用字面量语法来创建字符串、数值、数组、字典。这样简明扼要。
+2. 应该通过取下标操作操作来访问数组下标或字典中键所对应的元素。
+3. 使用字面量语法创建数组或字典时，若值中有nil，则会抛出异常。因此务必确认值中不含nil。
+

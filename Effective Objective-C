@@ -1,0 +1,92 @@
+#Effective Objective-C(一)
+
+--
+**Familiarize Yourself with Objective-C's Root**   
+Objective-C由Smaltalk演化而来，Smaltalk是消息传递机制的鼻祖。因此OC也采用消息传递机制取代功能调用(function calling)。  
+消息传递与功能调用的区别如下：  
+  
+```
+//Messaging(OC)  
+Object *obj = [Object new];  
+[obj performWith:para1 and:para2];
+
+//function calling(C++)
+Object *obj = new Object;
+obj->perform(para1,para2);
+```
+
+注意区别在于：使用消息结构的语言，运行时所执行的代码由运行环境来决定，而使用含住调用的语言，择优编译器决定。如果代码调用的函数是多态的，那么在运行时要按照“虚方法表(virtual table)”来查出到底该执行哪个函数实现，而采用消息结构的语言，不论是否多态，总是在运行时才回去查找所要执行的方法。甚至编译器对于接收消息是何种类型也不会关心。接收消息的对象问题也要在运行时处理，这一过程叫做“动态绑定(dynamic binding)”。  
+ 
+ **Objective-C的重要工作都由“运行期组件而非编译器来完成”,使用Objective-C的面向对象特性所需的全部数据结构以及函数都在运行期组件里面。运行期组件本质上是一种与开发者所编代码相链接的“动态库”，其代码能把开发者所编写的所有程序粘合起来**  
+ Objective-C对象的声明:`NSString *someString = @"The string";`解释为生命了一个名为someString 的变量，其类型是NSString *，也就是说变量为指向NSString的指针。  
+ **所有Objective-C对象所占内存**都是分配在“堆空间”中，而绝不会分配在“栈”上。  
+ 在Objective-C中，有时会遇到定义中不含 * 的变量，它们可能会使用“栈控件”，这些变量保存的不是Objective-C对象。比如CoreGraphics框架中的CGRect：
+ 
+ ```
+ CGRect frame;
+ frame.origin.x = 0.0f;
+ frame.origin.y = 10.0f;
+ frame.size.width = 100.0f;
+ frame.size.height = 150.f;
+ ```  
+ CGrect是C结构体，定义为: 
+  
+ ```
+ struct CGRect {
+ 	CGPoint origin;
+ 	CGSize size;
+ };
+ typedef struct CGRect CGRect;
+ ```  
+ ----
+ (分割线)
+> 这里穿插一下Objective-C中关于枚举的定义和用法。例如：  
+  > 
+ ```
+ typedef enum {
+ 	kCircle,
+ 	kRectange,
+ 	kOblateSpheroid
+ }ShapeType;
+ ```
+   
+ > 通常对于枚举的简单声明为：  
+  > 
+  ```enum tagname{ ... };```  
+ > 通过上面这种方式声明了一个名为tagname的枚举类型。在C或者Objective-C中如果要使用这一枚举，必须在前面记上关键字enum。  
+  >
+  ```
+  enum tagname x;//declare x of type 'enum tagname'
+  tagname x;//Error in C/Objective-c,OK in C++;
+  ```
+> 为了避免总是使用enum，于是出现了下面这种定义：  
+ >
+ ```
+ enum tagname { ... }
+ typedef enum tagname tagname;//declare 'tagname' as a typedef for 'enum tagname'
+ ```
+ >进而更简单的方法为:
+ >
+ ```
+ typedef enum tagname { ... } tagname;//declare both 'enum tagname' and 'tagname'
+ ```  
+ 
+ >最终我们可以这样声明： 
+ > 
+ ```
+ typedef enum { ... } tagname;
+ ``` 
+ >关于最上方的定义官方提供另一种便捷的宏NS_ENUM;  
+ >
+ ```
+ typedef NS_ENUM(NSUInteger, ShapeType) {
+ 	kCircle;
+ 	kRectagle;
+ 	kOblateSpheroid;
+ }
+ ```
+ ---
+ 
+要点：
+ 
+ * Objective-C采用动态绑定的消息结构，在运行时才会检查对象类型。接受一条消息后，究竟应该执行何种代码，由运行期环境而非编译器决定。
